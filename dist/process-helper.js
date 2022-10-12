@@ -49,7 +49,7 @@ class ProcessHelper extends messenger_1.Messenger {
             if (this.childProcess.pid) {
                 this.disconnect();
                 this.childProcess.removeAllListeners();
-                (0, tree_kill_1.default)(this.childProcess.pid);
+                (0, tree_kill_1.default)(this.childProcess.pid, 'SIGTERM');
                 this.childProcess = undefined;
             }
             else {
@@ -64,18 +64,11 @@ class ProcessHelper extends messenger_1.Messenger {
 }
 exports.ProcessHelper = ProcessHelper;
 ProcessHelper.instances = new Set();
-process.on('beforeExit', () => {
+const killHandler = () => {
     ProcessHelper.killAll();
-});
-process.on('exit', () => {
-    ProcessHelper.killAll();
-});
-process.on('SIGHUP', () => {
-    ProcessHelper.killAll();
-});
-process.on('SIGINT', () => {
-    ProcessHelper.killAll();
-});
-process.on('SIGTERM', () => {
-    ProcessHelper.killAll();
-});
+};
+process.on('beforeExit', killHandler);
+process.on('exit', killHandler);
+process.on('SIGINT', killHandler);
+process.on('SIGTERM', killHandler);
+process.on('SIGQUIT', killHandler);

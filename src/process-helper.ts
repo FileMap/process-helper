@@ -69,7 +69,7 @@ export class ProcessHelper extends Messenger {
                 // the process will not restart
                 this.childProcess.removeAllListeners();
 
-                kill(this.childProcess.pid);
+                kill(this.childProcess.pid, 'SIGTERM');
 
                 this.childProcess = undefined;
             } else {
@@ -84,22 +84,12 @@ export class ProcessHelper extends Messenger {
     }
 }
 
-process.on('beforeExit', () => {
+const killHandler = () => {
     ProcessHelper.killAll();
-});
+};
 
-process.on('exit', () => {
-    ProcessHelper.killAll();
-});
-
-process.on('SIGHUP', () => {
-    ProcessHelper.killAll();
-});
-
-process.on('SIGINT', () => {
-    ProcessHelper.killAll();
-});
-
-process.on('SIGTERM', () => {
-    ProcessHelper.killAll();
-});
+process.on('beforeExit', killHandler);
+process.on('exit', killHandler);
+process.on('SIGINT', killHandler);
+process.on('SIGTERM', killHandler);
+process.on('SIGQUIT', killHandler);
