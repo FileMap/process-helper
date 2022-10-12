@@ -12,6 +12,10 @@
         "clean": "rimraf dist",
         "lint": "eslint \"src/**/*.{tsx,ts,js}\" --fix"
     },
+    "dependencies": {
+        "tree-kill": "^1.2.2",
+        "uuid-random": "^1.3.2"
+    },
     "devDependencies": {
         "@types/node": "^18.6.3",
         "@typescript-eslint/eslint-plugin": "^5.31.0",
@@ -33,8 +37,5 @@
             "tsc-files --noEmit",
             "yarn run lint"
         ]
-    },
-    "dependencies": {
-        "uuid-random": "^1.3.2"
     }
 }

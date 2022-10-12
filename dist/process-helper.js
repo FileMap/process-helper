@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProcessHelper = void 0;
 const child_process_1 = require("child_process");
+const tree_kill_1 = __importDefault(require("tree-kill"));
 const messenger_1 = require("./messenger");
 class ProcessHelper extends messenger_1.Messenger {
     constructor(forkPath) {
@@ -42,10 +46,15 @@ class ProcessHelper extends messenger_1.Messenger {
     }
     stop() {
         if (this.childProcess) {
-            this.disconnect();
-            this.childProcess.removeAllListeners();
-            this.childProcess.kill('SIGINT');
-            this.childProcess = undefined;
+            if (this.childProcess.pid) {
+                this.disconnect();
+                this.childProcess.removeAllListeners();
+                (0, tree_kill_1.default)(this.childProcess.pid);
+                this.childProcess = undefined;
+            }
+            else {
+                console.warn('cannot kill child process because pid is undefined');
+            }
         }
     }
     restart() {
