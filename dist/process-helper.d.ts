@@ -7,6 +7,7 @@ export declare class ProcessHelper extends Messenger {
     constructor(forkPath: string);
     static killAll(): void;
     setEnv(env: any): void;
+    isStarted(): boolean;
     start(autoRestart?: boolean): void;
     stop(): void;
     restart(): void;

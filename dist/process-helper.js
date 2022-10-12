@@ -16,6 +16,9 @@ class ProcessHelper extends messenger_1.Messenger {
     setEnv(env) {
         this.env = env;
     }
+    isStarted() {
+        return !!this.childProcess;
+    }
     start(autoRestart = true) {
         if (!this.childProcess) {
             this.childProcess = (0, child_process_1.fork)(this.forkPath, {

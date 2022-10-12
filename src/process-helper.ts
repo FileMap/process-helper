@@ -26,6 +26,10 @@ export class ProcessHelper extends Messenger {
         this.env = env;
     }
 
+    public isStarted() {
+        return !!this.childProcess;
+    }
+
     public start(autoRestart = true) {
         if (!this.childProcess) {
             this.childProcess = fork(
