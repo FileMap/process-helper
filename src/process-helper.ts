@@ -67,7 +67,7 @@ export class ProcessHelper extends Messenger {
             // the process will not restart
             this.childProcess.removeAllListeners();
 
-            this.childProcess.kill('SIGHUP');
+            this.childProcess.kill('SIGINT');
             this.childProcess = undefined;
         }
     }
@@ -87,6 +87,10 @@ process.on('exit', () => {
 });
 
 process.on('SIGHUP', () => {
+    ProcessHelper.killAll();
+});
+
+process.on('SIGINT', () => {
     ProcessHelper.killAll();
 });
 
