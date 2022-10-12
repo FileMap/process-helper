@@ -44,7 +44,7 @@ class ProcessHelper extends messenger_1.Messenger {
         if (this.childProcess) {
             this.disconnect();
             this.childProcess.removeAllListeners();
-            this.childProcess.kill();
+            this.childProcess.kill('SIGHUP');
             this.childProcess = undefined;
         }
     }
@@ -59,6 +59,9 @@ process.on('beforeExit', () => {
     ProcessHelper.killAll();
 });
 process.on('exit', () => {
+    ProcessHelper.killAll();
+});
+process.on('SIGHUP', () => {
     ProcessHelper.killAll();
 });
 process.on('SIGTERM', () => {
