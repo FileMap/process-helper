@@ -1,5 +1,4 @@
 import { fork } from 'child_process';
-import kill from 'tree-kill';
 
 import { Messenger } from './messenger';
 
@@ -69,8 +68,7 @@ export class ProcessHelper extends Messenger {
                 // the process will not restart
                 this.childProcess.removeAllListeners();
 
-                kill(this.childProcess.pid, 'SIGTERM');
-
+                this.childProcess.kill('SIGTERM');
                 this.childProcess = undefined;
             } else {
                 console.warn('cannot kill child process because pid is undefined');
@@ -86,10 +84,9 @@ export class ProcessHelper extends Messenger {
 
 const killHandler = () => {
     ProcessHelper.killAll();
+    process.exit(0);
 };
 
-process.on('beforeExit', killHandler);
-process.on('exit', killHandler);
 process.on('SIGINT', killHandler);
 process.on('SIGTERM', killHandler);
 process.on('SIGQUIT', killHandler);

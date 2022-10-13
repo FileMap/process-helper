@@ -1,11 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProcessHelper = void 0;
 const child_process_1 = require("child_process");
-const tree_kill_1 = __importDefault(require("tree-kill"));
 const messenger_1 = require("./messenger");
 class ProcessHelper extends messenger_1.Messenger {
     constructor(forkPath) {
@@ -49,7 +45,7 @@ class ProcessHelper extends messenger_1.Messenger {
             if (this.childProcess.pid) {
                 this.disconnect();
                 this.childProcess.removeAllListeners();
-                (0, tree_kill_1.default)(this.childProcess.pid, 'SIGTERM');
+                this.childProcess.kill('SIGTERM');
                 this.childProcess = undefined;
             }
             else {
@@ -66,9 +62,8 @@ exports.ProcessHelper = ProcessHelper;
 ProcessHelper.instances = new Set();
 const killHandler = () => {
     ProcessHelper.killAll();
+    process.exit(0);
 };
-process.on('beforeExit', killHandler);
-process.on('exit', killHandler);
 process.on('SIGINT', killHandler);
 process.on('SIGTERM', killHandler);
 process.on('SIGQUIT', killHandler);
