@@ -98,10 +98,7 @@ export class Messenger {
     public disconnect() {
         this.channel!.off('message', this.onMessageHandler!);
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
-
         this.pendingMessages.clear();
-        this.handlers.clear();
-        this.listeners.clear();
 
         this.onMessageHandler = undefined;
         this.channel = undefined;
