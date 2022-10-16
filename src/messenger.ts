@@ -28,13 +28,15 @@ class Deferred<R = any> {
 export class Messenger {
     private onMessageHandler: undefined | ((...args: any[])=> void);
 
-    // requestId, resolve function
+    // maps requestId, resolve function
     private readonly pendingMessages: Map<string, Deferred> = new Map();
 
-    // event name, callback function
+    // handlers are responsible for sending the response on requests
+    // maps event name, callback function
     private readonly handlers: Map<string, MessengerFunction> = new Map();
 
-    // event name, callback function set
+    // listeners are side effects of requests, they do not return responses
+    // maps event name, callback function set
     private readonly listeners: Map<string, Set<MessengerFunction>> = new Map();
 
     private channel: NodeJS.Process | ChildProcess | undefined;
@@ -49,7 +51,7 @@ export class Messenger {
         this.channel = channel;
 
         this.onMessageHandler = async (message: { event: string, id: string, payload: any, err?: string }) => {
-            if (this.pendingMessages.has(message.id)) { // return value for sent message
+            if (this.pendingMessages.has(message.id)) { // we've received a response to our previously sent request
                 const fn = this.pendingMessages.get(message.id)!;
                 this.pendingMessages.delete(message.id);
 
@@ -58,7 +60,7 @@ export class Messenger {
                 } else {
                     fn.resolve(message.payload);
                 }
-            } else { // new received message
+            } else { // new request arrived
                 const handleFn = this.handlers.get(message.event);
                 if (handleFn) { // return the response
                     try {
@@ -96,6 +98,10 @@ export class Messenger {
     public disconnect() {
         this.channel!.off('message', this.onMessageHandler!);
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
+
+        this.pendingMessages.clear();
+        this.handlers.clear();
+        this.listeners.clear();
 
         this.onMessageHandler = undefined;
         this.channel = undefined;
