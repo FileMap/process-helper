@@ -50,13 +50,17 @@ export class Messenger {
     public connect(channel: NodeJS.Process | ChildProcess) {
         this.channel = channel;
 
-        this.onMessageHandler = async (message: { event: string, id: string, payload: any, err?: string }) => {
+        this.onMessageHandler = async (message: { event: string, id: string, payload: any, err?: any }) => {
             if (this.pendingMessages.has(message.id)) { // we've received a response to our previously sent request
                 const fn = this.pendingMessages.get(message.id)!;
                 this.pendingMessages.delete(message.id);
 
                 if (message.err) {
-                    fn.reject(message.err);
+                    if (message.err instanceof Error) {
+                        fn.reject(message.err);
+                    } else {
+                        fn.reject(new Error(message.err));
+                    }
                 } else {
                     fn.resolve(message.payload);
                 }
@@ -67,13 +71,11 @@ export class Messenger {
                         const payload = await handleFn(message.payload);
 
                         this.channel!.send!({ id: message.id, event: message.event, payload }, (err) => {
-                            if (err) console.error('Error while sending message', err);
+                            if (err) console.error('[ProcessHelper::Messenger]', 'Error while returning response:', err);
                         });
-                    } catch (err) {
-                        console.error('Error in handler:', err);
-
-                        this.channel!.send!({ id: message.id, event: message.event, err: (err as any)?.message || err }, (err2) => {
-                            if (err2) console.error('Error while sending message', err2);
+                    } catch (e) {
+                        this.channel!.send!({ id: message.id, event: message.event, err: (e as any)?.message || e }, (err) => {
+                            if (err) console.error('[ProcessHelper::Messenger]', 'Error while returning error:', err);
                         });
                     }
                 }
@@ -85,7 +87,7 @@ export class Messenger {
                             try {
                                 await s(message.payload, () => this.listeners.get(message.event)!.delete(s));
                             } catch (err) {
-                                console.error('Error on subscriber:', err);
+                                console.error('[ProcessHelper::Messenger]', 'Error on listener:', err);
                             }
                         }));
                 }
@@ -105,21 +107,22 @@ export class Messenger {
     }
 
     public async invoke<R = any, T = any>(event: string, payload?: T) {
-        try {
+        return new Promise<R>((resolve, reject) => {
             const requestId = uuid();
 
             const deferred = new Deferred<R>();
             this.pendingMessages.set(requestId, deferred);
 
             this.channel!.send!({ id: requestId, event, payload }, (err) => {
-                if (err) console.error('Error while sending message', err);
-            });
+                if (err) {
+                    this.pendingMessages.delete(requestId);
 
-            return await deferred.wait();
-        } catch (err) {
-            console.error('Error in messenger.send', err);
-            throw err;
-        }
+                    reject(err);
+                } else {
+                    deferred.wait().then(resolve).catch(reject);
+                }
+            });
+        });
     }
 
     public handle(event: string, fn: MessengerFunction) {

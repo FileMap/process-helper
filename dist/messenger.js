@@ -32,7 +32,12 @@ class Messenger {
                 const fn = this.pendingMessages.get(message.id);
                 this.pendingMessages.delete(message.id);
                 if (message.err) {
-                    fn.reject(message.err);
+                    if (message.err instanceof Error) {
+                        fn.reject(message.err);
+                    }
+                    else {
+                        fn.reject(new Error(message.err));
+                    }
                 }
                 else {
                     fn.resolve(message.payload);
@@ -45,14 +50,13 @@ class Messenger {
                         const payload = await handleFn(message.payload);
                         this.channel.send({ id: message.id, event: message.event, payload }, (err) => {
                             if (err)
-                                console.error('Error while sending message', err);
+                                console.error('[ProcessHelper::Messenger]', 'Error while returning response:', err);
                         });
                     }
-                    catch (err) {
-                        console.error('Error in handler:', err);
-                        this.channel.send({ id: message.id, event: message.event, err: err?.message || err }, (err2) => {
-                            if (err2)
-                                console.error('Error while sending message', err2);
+                    catch (e) {
+                        this.channel.send({ id: message.id, event: message.event, err: e?.message || e }, (err) => {
+                            if (err)
+                                console.error('[ProcessHelper::Messenger]', 'Error while returning error:', err);
                         });
                     }
                 }
@@ -64,7 +68,7 @@ class Messenger {
                             await s(message.payload, () => this.listeners.get(message.event).delete(s));
                         }
                         catch (err) {
-                            console.error('Error on subscriber:', err);
+                            console.error('[ProcessHelper::Messenger]', 'Error on listener:', err);
                         }
                     }));
                 }
@@ -80,20 +84,20 @@ class Messenger {
         this.channel = undefined;
     }
     async invoke(event, payload) {
-        try {
+        return new Promise((resolve, reject) => {
             const requestId = (0, uuid_random_1.default)();
             const deferred = new Deferred();
             this.pendingMessages.set(requestId, deferred);
             this.channel.send({ id: requestId, event, payload }, (err) => {
-                if (err)
-                    console.error('Error while sending message', err);
+                if (err) {
+                    this.pendingMessages.delete(requestId);
+                    reject(err);
+                }
+                else {
+                    deferred.wait().then(resolve).catch(reject);
+                }
             });
-            return await deferred.wait();
-        }
-        catch (err) {
-            console.error('Error in messenger.send', err);
-            throw err;
-        }
+        });
     }
     handle(event, fn) {
         if (this.handlers.has(event)) {
