@@ -1,3 +1,5 @@
+// @ts-nocheck
+import electron from 'electron/index.js';
 import { fork, spawn } from 'node:child_process';
 
 export type Runnable = ()=> Promise<any> | any;
@@ -24,9 +26,10 @@ export class ForkManager {
             const newArgs = process.argv.slice();
             newArgs.shift();
             newArgs.splice(1, 0, `--ph-fork=${forkPath}`);
+            newArgs.splice(1, 0, '--disable_gpu');
 
             return spawn(
-                process.execPath,
+                electron,
                 newArgs,
                 {
                     detached: false,
