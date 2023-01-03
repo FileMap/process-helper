@@ -1,5 +1,4 @@
-import { ForkManager } from 'fork-manager';
-
+import { ForkManager } from './fork-manager';
 import { Messenger } from './messenger';
 
 import type { ChildProcess } from 'node:child_process';

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProcessHelper = void 0;
-const fork_manager_1 = require("fork-manager");
+const fork_manager_1 = require("./fork-manager");
 const messenger_1 = require("./messenger");
 class ProcessHelper extends messenger_1.Messenger {
     constructor(forkPath) {
