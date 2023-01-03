@@ -21,9 +21,12 @@ export class ForkManager {
 
     public static fork(forkPath: string, env: any) {
         if (this.runnables.has(forkPath)) {
+            const newArgs = process.argv.slice();
+            newArgs.splice(1, 0, `--ph-fork=${forkPath}`);
+
             return spawn(
                 process.execPath,
-                [`--ph-fork=${forkPath}`],
+                newArgs,
                 {
                     detached: false,
                     stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
