@@ -1,10 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ForkManager = void 0;
-const index_js_1 = __importDefault(require("electron/index.js"));
 const node_child_process_1 = require("node:child_process");
 function fetchProcessRequest() {
     for (const arg of process.argv) {
@@ -24,7 +20,7 @@ class ForkManager {
             newArgs.shift();
             newArgs.splice(1, 0, `--ph-fork=${forkPath}`);
             newArgs.splice(1, 0, '--disable_gpu');
-            return (0, node_child_process_1.spawn)(index_js_1.default, newArgs, {
+            return (0, node_child_process_1.spawn)(require('electron/index.js'), newArgs, {
                 detached: false,
                 stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
                 env: { ...process.env, ...env },

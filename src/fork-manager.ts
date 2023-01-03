@@ -1,5 +1,4 @@
 // @ts-nocheck
-import electron from 'electron/index.js';
 import { fork, spawn } from 'node:child_process';
 
 export type Runnable = ()=> Promise<any> | any;
@@ -29,7 +28,8 @@ export class ForkManager {
             newArgs.splice(1, 0, '--disable_gpu');
 
             return spawn(
-                electron,
+                // eslint-disable-next-line global-require
+                require('electron/index.js'),
                 newArgs,
                 {
                     detached: false,
