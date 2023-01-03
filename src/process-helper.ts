@@ -1,4 +1,4 @@
-import { fork } from 'node:child_process';
+import { ForkManager } from 'fork-manager';
 
 import { Messenger } from './messenger';
 
@@ -34,15 +34,7 @@ export class ProcessHelper extends Messenger {
 
     public start(autoRestart = true) {
         if (!this.childProcess) {
-            this.childProcess = fork(
-                this.forkPath,
-                {
-                    detached: false,
-                    stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
-                    env: { ...process.env, ...this.env },
-                },
-            );
-
+            this.childProcess = ForkManager.fork(this.forkPath, this.env);
             if (!this.childProcess.pid) {
                 this.childProcess = undefined;
                 return;

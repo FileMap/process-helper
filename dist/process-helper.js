@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProcessHelper = void 0;
-const node_child_process_1 = require("node:child_process");
+const fork_manager_1 = require("fork-manager");
 const messenger_1 = require("./messenger");
 class ProcessHelper extends messenger_1.Messenger {
     constructor(forkPath) {
@@ -21,11 +21,7 @@ class ProcessHelper extends messenger_1.Messenger {
     }
     start(autoRestart = true) {
         if (!this.childProcess) {
-            this.childProcess = (0, node_child_process_1.fork)(this.forkPath, {
-                detached: false,
-                stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
-                env: { ...process.env, ...this.env },
-            });
+            this.childProcess = fork_manager_1.ForkManager.fork(this.forkPath, this.env);
             if (!this.childProcess.pid) {
                 this.childProcess = undefined;
                 return;
