@@ -1,25 +1,27 @@
-import { fork } from 'child_process';
+import { fork } from 'node:child_process';
 
 import { Messenger } from './messenger';
 
-import type { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'node:child_process';
 
 export class ProcessHelper extends Messenger {
     private static instances = new Set<ProcessHelper>();
+
+    public static killAll() {
+        ProcessHelper.instances.forEach(p => p.stop());
+        ProcessHelper.instances.clear();
+    }
 
     private env: any;
 
     private childProcess: ChildProcess | undefined;
 
+    private autoRestartListener: undefined | ((...args: any[])=> void);
+
     constructor(private readonly forkPath: string) {
         super();
 
         ProcessHelper.instances.add(this);
-    }
-
-    public static killAll() {
-        ProcessHelper.instances.forEach(p => p.stop());
-        ProcessHelper.instances.clear();
     }
 
     public setEnv(env: any) {
@@ -47,12 +49,16 @@ export class ProcessHelper extends Messenger {
             }
 
             if (autoRestart) {
-                this.childProcess.on('exit', () => {
+                this.autoRestartListener = () => {
                     this.disconnect();
+
                     this.childProcess = undefined;
+                    this.autoRestartListener = undefined;
 
                     this.start();
-                });
+                };
+
+                this.childProcess.on('exit', this.autoRestartListener);
             }
 
             this.connect(this.childProcess);
@@ -64,9 +70,8 @@ export class ProcessHelper extends Messenger {
             if (this.childProcess.pid) {
                 this.disconnect();
 
-                // we need to remove all listener to make sure that
-                // the process will not restart
-                this.childProcess.removeAllListeners();
+                this.childProcess.off('exit', this.autoRestartListener!);
+                this.autoRestartListener = undefined;
 
                 this.childProcess.kill('SIGTERM');
                 this.childProcess = undefined;

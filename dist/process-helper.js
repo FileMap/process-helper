@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProcessHelper = void 0;
-const child_process_1 = require("child_process");
+const node_child_process_1 = require("node:child_process");
 const messenger_1 = require("./messenger");
 class ProcessHelper extends messenger_1.Messenger {
     constructor(forkPath) {
@@ -21,7 +21,7 @@ class ProcessHelper extends messenger_1.Messenger {
     }
     start(autoRestart = true) {
         if (!this.childProcess) {
-            this.childProcess = (0, child_process_1.fork)(this.forkPath, {
+            this.childProcess = (0, node_child_process_1.fork)(this.forkPath, {
                 detached: false,
                 stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
                 env: { ...process.env, ...this.env },
@@ -31,11 +31,13 @@ class ProcessHelper extends messenger_1.Messenger {
                 return;
             }
             if (autoRestart) {
-                this.childProcess.on('exit', () => {
+                this.autoRestartListener = () => {
                     this.disconnect();
                     this.childProcess = undefined;
+                    this.autoRestartListener = undefined;
                     this.start();
-                });
+                };
+                this.childProcess.on('exit', this.autoRestartListener);
             }
             this.connect(this.childProcess);
         }
@@ -44,7 +46,8 @@ class ProcessHelper extends messenger_1.Messenger {
         if (this.childProcess) {
             if (this.childProcess.pid) {
                 this.disconnect();
-                this.childProcess.removeAllListeners();
+                this.childProcess.off('exit', this.autoRestartListener);
+                this.autoRestartListener = undefined;
                 this.childProcess.kill('SIGTERM');
                 this.childProcess = undefined;
             }

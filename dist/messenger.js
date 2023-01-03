@@ -21,6 +21,7 @@ class Messenger {
         this.pendingMessages = new Map();
         this.handlers = new Map();
         this.listeners = new Map();
+        this.exitListeners = new Set();
         if (channel) {
             this.connect(channel);
         }
@@ -42,42 +43,54 @@ class Messenger {
                 else {
                     fn.resolve(message.payload);
                 }
+                return;
             }
-            else {
-                const handleFn = this.handlers.get(message.event);
-                if (handleFn) {
+            const handleFn = this.handlers.get(message.event);
+            if (handleFn) {
+                try {
+                    const payload = await handleFn(message.payload);
+                    this.channel.send({ id: message.id, event: message.event, payload }, (err) => {
+                        if (err)
+                            console.error('[ProcessHelper::Messenger]', 'Error while returning response:', err);
+                    });
+                }
+                catch (e) {
+                    this.channel.send({ id: message.id, event: message.event, err: e?.message || e }, (err) => {
+                        if (err)
+                            console.error('[ProcessHelper::Messenger]', 'Error while returning error:', err);
+                    });
+                }
+            }
+            const fns = this.listeners.get(message.event);
+            if (fns) {
+                await Promise.all(Array.from(fns.values())
+                    .map(async (s) => {
                     try {
-                        const payload = await handleFn(message.payload);
-                        this.channel.send({ id: message.id, event: message.event, payload }, (err) => {
-                            if (err)
-                                console.error('[ProcessHelper::Messenger]', 'Error while returning response:', err);
-                        });
+                        await s(message.payload, () => this.listeners.get(message.event).delete(s));
                     }
-                    catch (e) {
-                        this.channel.send({ id: message.id, event: message.event, err: e?.message || e }, (err) => {
-                            if (err)
-                                console.error('[ProcessHelper::Messenger]', 'Error while returning error:', err);
-                        });
+                    catch (err) {
+                        console.error('[ProcessHelper::Messenger]', 'Error on listener:', err);
                     }
-                }
-                const fns = this.listeners.get(message.event);
-                if (fns) {
-                    await Promise.all(Array.from(fns.values())
-                        .map(async (s) => {
-                        try {
-                            await s(message.payload, () => this.listeners.get(message.event).delete(s));
-                        }
-                        catch (err) {
-                            console.error('[ProcessHelper::Messenger]', 'Error on listener:', err);
-                        }
-                    }));
-                }
+                }));
             }
         };
+        this.onExitHandler = async (payload) => {
+            await Promise.all(Array.from(this.exitListeners.values())
+                .map(async (s) => {
+                try {
+                    await s(payload, () => this.exitListeners.delete(s));
+                }
+                catch (err) {
+                    console.error('[ProcessHelper::Messenger]', 'Error on listener:', err);
+                }
+            }));
+        };
         this.channel.on('message', this.onMessageHandler);
+        this.channel.on('exit', this.onExitHandler);
     }
     disconnect() {
         this.channel.off('message', this.onMessageHandler);
+        this.channel.off('exit', this.onExitHandler);
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
         this.pendingMessages.clear();
         this.onMessageHandler = undefined;
@@ -99,17 +112,23 @@ class Messenger {
             });
         });
     }
+    onExit(fn) {
+        this.exitListeners.add(fn);
+        return () => this.exitListeners.delete(fn);
+    }
     handle(event, fn) {
         if (this.handlers.has(event)) {
             throw new Error('cannot register more than one invoke handler');
         }
         this.handlers.set(event, fn);
+        return () => this.handlers.delete(event);
     }
     listen(event, fn) {
         if (!this.listeners.has(event)) {
             this.listeners.set(event, new Set());
         }
         this.listeners.get(event).add(fn);
+        return () => this.listeners.get(event).delete(fn);
     }
 }
 exports.Messenger = Messenger;
