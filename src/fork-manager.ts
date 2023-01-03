@@ -1,5 +1,6 @@
-// @ts-nocheck
 import { fork, spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export type Runnable = ()=> Promise<any> | any;
 
@@ -22,14 +23,21 @@ export class ForkManager {
 
     public static fork(forkPath: string, cwd: string, env: any) {
         if (this.runnables.has(forkPath)) {
+            const pathFile = path.join(cwd, 'node_modules/electron/path.txt');
+
+            let executablePath = process.execPath;
+            if (fs.existsSync(pathFile)) {
+                const electronPath = fs.readFileSync(pathFile, 'utf-8');
+                executablePath = path.join(cwd, 'node_modules/electron/dist', electronPath);
+            }
+
             const newArgs = process.argv.slice();
             newArgs.shift();
             newArgs.splice(1, 0, `--ph-fork=${forkPath}`);
             newArgs.splice(1, 0, '--disable_gpu');
 
             return spawn(
-                // eslint-disable-next-line global-require
-                require('electron/index.js'),
+                executablePath,
                 newArgs,
                 {
                     detached: false,
