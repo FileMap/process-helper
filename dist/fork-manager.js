@@ -17,6 +17,7 @@ class ForkManager {
     static fork(forkPath, cwd, env) {
         if (this.runnables.has(forkPath)) {
             const newArgs = process.argv.slice();
+            newArgs.shift();
             newArgs.splice(1, 0, `--ph-fork=${forkPath}`);
             return (0, node_child_process_1.spawn)(process.execPath, newArgs, {
                 detached: false,
