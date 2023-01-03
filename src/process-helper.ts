@@ -17,7 +17,7 @@ export class ProcessHelper extends Messenger {
 
     private autoRestartListener: undefined | ((...args: any[])=> void);
 
-    constructor(private readonly forkPath: string) {
+    constructor(private readonly forkPath: string, private readonly cwd: string) {
         super();
 
         ProcessHelper.instances.add(this);
@@ -33,7 +33,7 @@ export class ProcessHelper extends Messenger {
 
     public start(autoRestart = true) {
         if (!this.childProcess) {
-            this.childProcess = ForkManager.fork(this.forkPath, this.env);
+            this.childProcess = ForkManager.fork(this.forkPath, this.cwd, this.env);
             if (!this.childProcess.pid) {
                 this.childProcess = undefined;
                 return;

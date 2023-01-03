@@ -14,7 +14,7 @@ class ForkManager {
     static register(name, runnable) {
         ForkManager.runnables.set(name, runnable);
     }
-    static fork(forkPath, env) {
+    static fork(forkPath, cwd, env) {
         if (this.runnables.has(forkPath)) {
             const newArgs = process.argv.slice();
             newArgs.splice(1, 0, `--ph-fork=${forkPath}`);
@@ -22,12 +22,14 @@ class ForkManager {
                 detached: false,
                 stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
                 env: { ...process.env, ...env },
+                cwd,
             });
         }
         return (0, node_child_process_1.fork)(forkPath, {
             detached: false,
             stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
             env: { ...process.env, ...env },
+            cwd,
         });
     }
     static start() {

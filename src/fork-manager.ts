@@ -19,7 +19,7 @@ export class ForkManager {
         ForkManager.runnables.set(name, runnable);
     }
 
-    public static fork(forkPath: string, env: any) {
+    public static fork(forkPath: string, cwd: string, env: any) {
         if (this.runnables.has(forkPath)) {
             const newArgs = process.argv.slice();
             newArgs.splice(1, 0, `--ph-fork=${forkPath}`);
@@ -31,6 +31,7 @@ export class ForkManager {
                     detached: false,
                     stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
                     env: { ...process.env, ...env },
+                    cwd,
                 },
             );
         }
@@ -41,6 +42,7 @@ export class ForkManager {
                 detached: false,
                 stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
                 env: { ...process.env, ...env },
+                cwd,
             },
         );
     }

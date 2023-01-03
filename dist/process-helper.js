@@ -4,9 +4,10 @@ exports.ProcessHelper = void 0;
 const fork_manager_1 = require("./fork-manager");
 const messenger_1 = require("./messenger");
 class ProcessHelper extends messenger_1.Messenger {
-    constructor(forkPath) {
+    constructor(forkPath, cwd) {
         super();
         this.forkPath = forkPath;
+        this.cwd = cwd;
         ProcessHelper.instances.add(this);
     }
     static killAll() {
@@ -21,7 +22,7 @@ class ProcessHelper extends messenger_1.Messenger {
     }
     start(autoRestart = true) {
         if (!this.childProcess) {
-            this.childProcess = fork_manager_1.ForkManager.fork(this.forkPath, this.env);
+            this.childProcess = fork_manager_1.ForkManager.fork(this.forkPath, this.cwd, this.env);
             if (!this.childProcess.pid) {
                 this.childProcess = undefined;
                 return;
