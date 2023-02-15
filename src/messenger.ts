@@ -51,7 +51,7 @@ export class Messenger {
         }
     }
 
-    private sendStatus(status: 'connected' | 'disconnected') {
+    private sendStatus(status: 'connected') { // use 'onExit' for 'disconnected'
         if (!this.channel) {
             console.error('[ProcessHelper::Messenger]', 'Cannot send status change, channel is not connected');
             return;
@@ -70,7 +70,6 @@ export class Messenger {
         this.channel = channel;
 
         this.onMessageHandler = async (message: { event: string, id: string, payload: any, err?: any }) => {
-            console.log('[ProcessHelper::Messenger]', 'Received message:', message);
             if (this.pendingMessages.has(message.id)) {
                 // we've received a response to our previously sent request
 
@@ -134,7 +133,6 @@ export class Messenger {
                         }
                     }),
             );
-            this.channel!.off('exit', this.onExitHandler!);
         };
 
         this.channel.on('message', this.onMessageHandler);
@@ -144,7 +142,6 @@ export class Messenger {
     }
 
     protected disconnect() {
-        // this.sendStatus('disconnected');
         this.channel!.off('message', this.onMessageHandler!);
 
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));

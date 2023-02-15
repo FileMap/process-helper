@@ -45,7 +45,6 @@ class Messenger {
     connect(channel) {
         this.channel = channel;
         this.onMessageHandler = async (message) => {
-            console.log('[ProcessHelper::Messenger]', 'Received message:', message);
             if (this.pendingMessages.has(message.id)) {
                 const fn = this.pendingMessages.get(message.id);
                 this.pendingMessages.delete(message.id);
@@ -101,7 +100,6 @@ class Messenger {
                     console.error('[ProcessHelper::Messenger]', 'Error on listener:', err);
                 }
             }));
-            this.channel.off('exit', this.onExitHandler);
         };
         this.channel.on('message', this.onMessageHandler);
         this.channel.on('exit', this.onExitHandler);
