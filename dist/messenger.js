@@ -45,6 +45,7 @@ class Messenger {
     connect(channel) {
         this.channel = channel;
         this.onMessageHandler = async (message) => {
+            console.log('[ProcessHelper::Messenger]', 'Received message:', message);
             if (this.pendingMessages.has(message.id)) {
                 const fn = this.pendingMessages.get(message.id);
                 this.pendingMessages.delete(message.id);
@@ -106,6 +107,7 @@ class Messenger {
         this.sendStatus('connected');
     }
     disconnect() {
+        this.sendStatus('disconnected');
         this.channel.off('message', this.onMessageHandler);
         this.channel.off('exit', this.onExitHandler);
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));

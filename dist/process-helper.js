@@ -43,6 +43,7 @@ class ProcessHelper extends messenger_1.Messenger {
         }
     }
     stop() {
+        console.log('stopping child process', !!this.childProcess, 'pid:', this.childProcess?.pid);
         if (this.childProcess) {
             if (this.childProcess.pid) {
                 this.disconnect();
@@ -50,6 +51,7 @@ class ProcessHelper extends messenger_1.Messenger {
                 this.autoRestartListener = undefined;
                 this.childProcess.kill('SIGTERM');
                 this.childProcess = undefined;
+                console.log("children's process killed");
             }
             else {
                 console.warn('cannot kill child process because pid is undefined');
