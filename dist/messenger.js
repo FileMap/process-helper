@@ -102,9 +102,9 @@ class Messenger {
         this.sendStatus('connected');
     }
     disconnect() {
+        this.sendStatus('disconnected');
         this.channel.off('message', this.onMessageHandler);
         this.channel.off('exit', this.onExitHandler);
-        this.sendStatus('disconnected');
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
         this.pendingMessages.clear();
         this.onMessageHandler = undefined;
