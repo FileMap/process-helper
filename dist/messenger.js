@@ -17,7 +17,8 @@ class Deferred {
     }
 }
 class Messenger {
-    constructor(channel) {
+    constructor(channel, who = 'unknown') {
+        this.who = who;
         this.pendingMessages = new Map();
         this.handlers = new Map();
         this.listeners = new Map();
@@ -25,6 +26,17 @@ class Messenger {
         if (channel) {
             this.connect(channel);
         }
+    }
+    sendStatus(status) {
+        if (!this.channel)
+            return;
+        if (!this.channel.send)
+            return;
+        const requestId = (0, uuid_random_1.default)();
+        this.channel.send({ id: requestId, event: 'StatusChange', payload: { who: this.who, status } }, (err) => {
+            if (err)
+                console.error('[ProcessHelper::Messenger]', 'Error while sending status change:', err);
+        });
     }
     connect(channel) {
         this.channel = channel;
@@ -87,10 +99,12 @@ class Messenger {
         };
         this.channel.on('message', this.onMessageHandler);
         this.channel.on('exit', this.onExitHandler);
+        this.sendStatus('ready');
     }
     disconnect() {
         this.channel.off('message', this.onMessageHandler);
         this.channel.off('exit', this.onExitHandler);
+        this.sendStatus('disconnected');
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
         this.pendingMessages.clear();
         this.onMessageHandler = undefined;
