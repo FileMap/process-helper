@@ -87,6 +87,7 @@ class Messenger {
             }
         };
         this.onExitHandler = async (payload) => {
+            this.sendStatus('disconnected');
             await Promise.all(Array.from(this.exitListeners.values())
                 .map(async (s) => {
                 try {
@@ -102,7 +103,6 @@ class Messenger {
         this.sendStatus('connected');
     }
     disconnect() {
-        this.sendStatus('disconnected');
         this.channel.off('message', this.onMessageHandler);
         this.channel.off('exit', this.onExitHandler);
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
