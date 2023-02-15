@@ -134,6 +134,7 @@ export class Messenger {
                         }
                     }),
             );
+            this.channel!.off('exit', this.onExitHandler!);
         };
 
         this.channel.on('message', this.onMessageHandler);
@@ -143,9 +144,8 @@ export class Messenger {
     }
 
     protected disconnect() {
-        this.sendStatus('disconnected');
+        // this.sendStatus('disconnected');
         this.channel!.off('message', this.onMessageHandler!);
-        this.channel!.off('exit', this.onExitHandler!);
 
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
         this.pendingMessages.clear();

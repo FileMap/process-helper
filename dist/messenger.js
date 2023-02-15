@@ -101,15 +101,14 @@ class Messenger {
                     console.error('[ProcessHelper::Messenger]', 'Error on listener:', err);
                 }
             }));
+            this.channel.off('exit', this.onExitHandler);
         };
         this.channel.on('message', this.onMessageHandler);
         this.channel.on('exit', this.onExitHandler);
         this.sendStatus('connected');
     }
     disconnect() {
-        this.sendStatus('disconnected');
         this.channel.off('message', this.onMessageHandler);
-        this.channel.off('exit', this.onExitHandler);
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
         this.pendingMessages.clear();
         this.onMessageHandler = undefined;
