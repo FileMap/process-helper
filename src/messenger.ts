@@ -45,10 +45,19 @@ export class Messenger {
 
     private channel: NodeJS.Process | ChildProcess | undefined;
 
-    constructor(channel?: NodeJS.Process | ChildProcess) {
+    constructor(channel?: NodeJS.Process | ChildProcess, private readonly who = 'unknown') {
         if (channel) {
             this.connect(channel);
         }
+    }
+
+    private sendStatus(status: 'ready' | 'disconnected') {
+        if (!this.channel) return;
+        if (!this.channel.send) return;
+        const requestId = uuid();
+        this.channel.send({ id: requestId, event: 'StatusChange', payload: { who: this.who, status } }, (err) => {
+            if (err) console.error('[ProcessHelper::Messenger]', 'Error while sending status change:', err);
+        });
     }
 
     protected connect(channel: NodeJS.Process | ChildProcess) {
@@ -122,11 +131,15 @@ export class Messenger {
 
         this.channel.on('message', this.onMessageHandler);
         this.channel.on('exit', this.onExitHandler);
+
+        this.sendStatus('ready');
     }
 
     protected disconnect() {
         this.channel!.off('message', this.onMessageHandler!);
         this.channel!.off('exit', this.onExitHandler!);
+
+        this.sendStatus('disconnected');
 
         this.pendingMessages.forEach(p => p.reject(new Error('Process was disconnected')));
         this.pendingMessages.clear();
