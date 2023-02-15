@@ -51,7 +51,7 @@ export class Messenger {
         }
     }
 
-    private sendStatus(status: 'connected' | 'disconnected') {
+    private sendStatus(status: 'connected') { // use onExit for 'disconnected'
         if (!this.channel) {
             console.error('[ProcessHelper::Messenger]', 'Cannot send status change, channel is not connected');
             return;
@@ -123,7 +123,6 @@ export class Messenger {
         };
 
         this.onExitHandler = async (payload: any) => {
-            this.sendStatus('disconnected');
             await Promise.all(
                 Array.from(this.exitListeners.values())
                     .map(async (s) => {

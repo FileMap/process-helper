@@ -91,7 +91,6 @@ class Messenger {
             }
         };
         this.onExitHandler = async (payload) => {
-            this.sendStatus('disconnected');
             await Promise.all(Array.from(this.exitListeners.values())
                 .map(async (s) => {
                 try {
