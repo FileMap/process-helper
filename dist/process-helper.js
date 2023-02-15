@@ -43,6 +43,7 @@ class ProcessHelper extends messenger_1.Messenger {
         }
     }
     stop() {
+        console.log('stopping child process', this.childProcess, this.childProcess?.pid);
         if (this.childProcess) {
             if (this.childProcess.pid) {
                 this.disconnect();
