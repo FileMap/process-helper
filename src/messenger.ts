@@ -52,8 +52,14 @@ export class Messenger {
     }
 
     private sendStatus(status: 'connected' | 'disconnected') {
-        if (!this.channel) return;
-        if (!this.channel.send) return;
+        if (!this.channel) {
+            console.error('[ProcessHelper::Messenger]', 'Cannot send status change, channel is not connected');
+            return;
+        }
+        if (!this.channel.send) {
+            console.error('[ProcessHelper::Messenger]', 'Cannot send status change, channel does not support send');
+            return;
+        }
         const requestId = uuid();
         this.channel.send({ id: requestId, event: 'StatusChange', payload: { who: this.who, status } }, (err) => {
             if (err) console.error('[ProcessHelper::Messenger]', 'Error while sending status change:', err);

@@ -28,10 +28,14 @@ class Messenger {
         }
     }
     sendStatus(status) {
-        if (!this.channel)
+        if (!this.channel) {
+            console.error('[ProcessHelper::Messenger]', 'Cannot send status change, channel is not connected');
             return;
-        if (!this.channel.send)
+        }
+        if (!this.channel.send) {
+            console.error('[ProcessHelper::Messenger]', 'Cannot send status change, channel does not support send');
             return;
+        }
         const requestId = (0, uuid_random_1.default)();
         this.channel.send({ id: requestId, event: 'StatusChange', payload: { who: this.who, status } }, (err) => {
             if (err)
