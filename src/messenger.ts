@@ -51,7 +51,7 @@ export class Messenger {
         }
     }
 
-    private sendStatus(status: 'ready' | 'disconnected') {
+    private sendStatus(status: 'connected' | 'disconnected') {
         if (!this.channel) return;
         if (!this.channel.send) return;
         const requestId = uuid();
@@ -132,7 +132,7 @@ export class Messenger {
         this.channel.on('message', this.onMessageHandler);
         this.channel.on('exit', this.onExitHandler);
 
-        this.sendStatus('ready');
+        this.sendStatus('connected');
     }
 
     protected disconnect() {

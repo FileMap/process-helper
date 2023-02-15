@@ -99,7 +99,7 @@ class Messenger {
         };
         this.channel.on('message', this.onMessageHandler);
         this.channel.on('exit', this.onExitHandler);
-        this.sendStatus('ready');
+        this.sendStatus('connected');
     }
     disconnect() {
         this.channel.off('message', this.onMessageHandler);
