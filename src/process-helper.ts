@@ -66,6 +66,7 @@ export class ProcessHelper extends Messenger {
     }
 
     public stop() {
+        console.log('stopping child process', this.childProcess, this.childProcess?.pid);
         if (this.childProcess) {
             if (this.childProcess.pid) {
                 this.disconnect();
