@@ -38,6 +38,7 @@ class ProcessHelper extends messenger_1.Messenger {
                     this.start();
                 };
                 this.childProcess.on('exit', this.autoRestartListener);
+                this.childProcess.on('error', this.autoRestartListener);
             }
             this.connect(this.childProcess);
         }
@@ -48,6 +49,7 @@ class ProcessHelper extends messenger_1.Messenger {
             if (this.childProcess.pid) {
                 this.disconnect();
                 this.childProcess.off('exit', this.autoRestartListener);
+                this.childProcess.off('error', this.autoRestartListener);
                 this.autoRestartListener = undefined;
                 this.childProcess.kill('SIGTERM');
                 this.childProcess = undefined;
