@@ -18,6 +18,11 @@ export class ProcessHelper extends Messenger {
 
     private autoRestartListener: undefined | ((...args: any[])=> void);
 
+    private errorHandler = (...args: any[]) => {
+        console.error('child process error', ...args);
+        this.autoRestartListener?.(...args);
+    };
+
     constructor(private readonly forkPath: string) {
         super();
 
@@ -59,6 +64,7 @@ export class ProcessHelper extends Messenger {
                 };
 
                 this.childProcess.on('exit', this.autoRestartListener);
+                this.childProcess.on('error', this.errorHandler);
             }
 
             this.connect(this.childProcess);
@@ -72,6 +78,7 @@ export class ProcessHelper extends Messenger {
                 this.disconnect();
 
                 this.childProcess.off('exit', this.autoRestartListener!);
+                this.childProcess.off('error', this.errorHandler);
                 this.autoRestartListener = undefined;
 
                 this.childProcess.kill('SIGTERM');

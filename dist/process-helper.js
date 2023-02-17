@@ -7,6 +7,10 @@ class ProcessHelper extends messenger_1.Messenger {
     constructor(forkPath) {
         super();
         this.forkPath = forkPath;
+        this.errorHandler = (...args) => {
+            console.error('child process error', ...args);
+            this.autoRestartListener?.(...args);
+        };
         ProcessHelper.instances.add(this);
     }
     static killAll() {
@@ -38,6 +42,7 @@ class ProcessHelper extends messenger_1.Messenger {
                     this.start();
                 };
                 this.childProcess.on('exit', this.autoRestartListener);
+                this.childProcess.on('error', this.errorHandler);
             }
             this.connect(this.childProcess);
         }
@@ -48,6 +53,7 @@ class ProcessHelper extends messenger_1.Messenger {
             if (this.childProcess.pid) {
                 this.disconnect();
                 this.childProcess.off('exit', this.autoRestartListener);
+                this.childProcess.off('error', this.errorHandler);
                 this.autoRestartListener = undefined;
                 this.childProcess.kill('SIGTERM');
                 this.childProcess = undefined;

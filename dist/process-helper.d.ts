@@ -6,6 +6,7 @@ export declare class ProcessHelper extends Messenger {
     private env;
     private childProcess;
     private autoRestartListener;
+    private errorHandler;
     constructor(forkPath: string);
     setEnv(env: any): void;
     isStarted(): boolean;
