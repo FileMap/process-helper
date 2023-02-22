@@ -45,7 +45,7 @@ export class Messenger {
 
     private channel: NodeJS.Process | ChildProcess | undefined;
 
-    constructor(channel?: NodeJS.Process | ChildProcess, private readonly who = 'unknown') {
+    constructor(channel?: NodeJS.Process | ChildProcess, protected readonly who = 'unknown') {
         if (channel) {
             this.connect(channel);
         }

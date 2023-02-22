@@ -55,6 +55,7 @@ export class ProcessHelper extends Messenger {
 
             if (autoRestart) {
                 this.autoRestartListener = () => {
+                    console.log('restarting process..', this.who);
                     this.disconnect();
 
                     this.childProcess = undefined;
