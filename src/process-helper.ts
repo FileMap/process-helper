@@ -66,6 +66,8 @@ export class ProcessHelper extends Messenger {
 
                 this.childProcess.on('exit', this.autoRestartListener);
                 this.childProcess.on('error', this.errorHandler);
+                this.childProcess.on('uncaughtException', this.errorHandler);
+                this.childProcess.on('unhandledRejection', this.errorHandler);
             }
 
             this.connect(this.childProcess);
@@ -80,6 +82,8 @@ export class ProcessHelper extends Messenger {
 
                 this.childProcess.off('exit', this.autoRestartListener!);
                 this.childProcess.off('error', this.errorHandler);
+                this.childProcess.off('uncaughtException', this.errorHandler);
+                this.childProcess.off('unhandledRejection', this.errorHandler);
                 this.autoRestartListener = undefined;
 
                 this.childProcess.kill('SIGTERM');
